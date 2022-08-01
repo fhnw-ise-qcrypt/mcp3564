@@ -65,7 +65,7 @@ void MCP3561_Init(SPI_HandleTypeDef *hspi){
 
 	cmd[0]  = MCP3561_CONFIG3_WRITE;
 	cmd[1]  = MCP3561_CONFIG3_CONV_MODE_CONTINUOUS; // conversion mode
-	cmd[1] |= MCP3561_CONFIG3_DATA_FORMAT_32BIT;    // SPI output data format, (32 and 24 bit available)
+	cmd[1] |= MCP3561_CONFIG3_DATA_FORMAT_24BIT;    // SPI output data format, (32 and 24 bit available)
 	cmd[1] |= MCP3561_CONFIG3_CRCCOM_OFF;           // CRC
 	cmd[1] |= MCP3561_CONFIG3_GAINCAL_OFF;          // gain calibration
 	cmd[1] |= MCP3561_CONFIG3_OFFCAL_OFF;           // offset calibration
@@ -79,6 +79,7 @@ void MCP3561_Init(SPI_HandleTypeDef *hspi){
 
 	cmd[0]  = MCP3561_MUX_WRITE;
 	cmd[1]  = (MCP3561_MUX_CH0 << 4) | MCP3561_MUX_CH1;   // [7..4] VIN+ / [3..0] VIN-
+	//cmd[1]  = (MCP3561_MUX_CH_IntTemp_P << 4) | MCP3561_MUX_CH_IntTemp_M;   // [7..4] VIN+ / [3..0] VIN-
 	_MCP3561_write(hspi, cmd, 2);
 
 	// configure SCAN mode to automatically cycle through channels
