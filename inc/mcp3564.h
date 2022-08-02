@@ -1,5 +1,5 @@
 /***********************************************************************************
-  * @file    mcp3564.c
+  * @file    mcp3564.h
   * @brief   C Library for configuring the MCP3561/2/4 1/2/4 channel
   *          24 Bit sigma-delta ADC on STM32
   * @version 0.1
@@ -35,6 +35,7 @@
  /* Exported functions prototypes ---------------------------------------------*/
  void MCP3561_Init (SPI_HandleTypeDef *hspi);
  void MCP3561_Reset (SPI_HandleTypeDef *hspi);
+ void MCP3561_Channels(SPI_HandleTypeDef *hspi, uint8_t ch_p, uint8_t ch_n);
  uint32_t MCP3561_ReadADCData    (SPI_HandleTypeDef *hspi);
  void    MCP3561_PrintRegisters (SPI_HandleTypeDef *hspi);
  // uint32_t MCP3561_ReadADCData_IT (SPI_HandleTypeDef *hspi);
@@ -191,11 +192,28 @@
 #define _MCP3561_MUX_VIN_P_POS   (4)
 #define _MCP3561_MUX_VIN_N_POS   (0)
 
+#define MCP3561_SCAN_CH_Offset    (0xF)
+#define MCP3561_SCAN_CH_IntVcm    (0xE)
+#define MCP3561_SCAN_CH_AVDD      (0xD)
+#define MCP3561_SCAN_CH_TEMP      (0xC)
+#define MCP3561_SCAN_CH_DIFF_D    (0xB)
+#define MCP3561_SCAN_CH_DIFF_C    (0xA)
+#define MCP3561_SCAN_CH_DIFF_B    (0x9)
+#define MCP3561_SCAN_CH_DIFF_A    (0x8)
+#define MCP3561_SCAN_CH7          (0x7)
+#define MCP3561_SCAN_CH6          (0x6)
+#define MCP3561_SCAN_CH5          (0x5)
+#define MCP3561_SCAN_CH4          (0x4)
+#define MCP3561_SCAN_CH3          (0x3)
+#define MCP3561_SCAN_CH2          (0x2)
+#define MCP3561_SCAN_CH1          (0x1)
+#define MCP3561_SCAN_CH0          (0x0)
+
 #define MCP3561_SCAN_ADDR      (0x07)
 #define MCP3561_SCAN_WRITE     (MCP3561_SCAN_ADDR << _MCP3561_COMMAND_ADDR_POS) | MCP3561_WRITE_COMMAND
 #define MCP3561_SCAN_SREAD     (MCP3561_SCAN_ADDR << _MCP3561_COMMAND_ADDR_POS) | MCP3561_SREAD_DATA_COMMAND
 #define MCP3561_SCAN_IREAD     (MCP3561_SCAN_ADDR << _MCP3561_COMMAND_ADDR_POS) | MCP3561_IREAD_COMMAND
-#define _MCP3561_SCAN_DLY_POS  (5)  // bit 21
+#define _MCP3561_SCAN_DLY_POS  (21)
 #define MCP3561_SCAN_DLY_512   (0x07 << _MCP3561_SCAN_DLY_POS)
 #define MCP3561_SCAN_DLY_256   (0x06 << _MCP3561_SCAN_DLY_POS)
 #define MCP3561_SCAN_DLY_128   (0x05 << _MCP3561_SCAN_DLY_POS)

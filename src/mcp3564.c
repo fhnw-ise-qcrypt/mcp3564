@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "mcp3564.h"
+#include "mcp3564_conf.h"
 
 void _MCP3561_write(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t size){
 	// manually operate the !CS signal, because the STM32 hardware NSS signal is (sadly) useless
@@ -37,6 +38,14 @@ uint8_t _MCP3561_sread(SPI_HandleTypeDef *hspi, uint8_t *cmd){
 	return reg8[1];
 }
 
+void MCP3561_Channels(SPI_HandleTypeDef *hspi, uint8_t ch_p, uint8_t ch_n){
+	uint8_t cmd[4] = {0,0,0,0};
+	cmd[0]  = MCP3561_MUX_WRITE;
+	cmd[1]  = (ch_p << 4) | ch_n;   // [7..4] VIN+ / [3..0] VIN-
+	//cmd[1]  = (MCP3561_MUX_CH_IntTemp_P << 4) | MCP3561_MUX_CH_IntTemp_M;   // [7..4] VIN+ / [3..0] VIN-
+	_MCP3561_write(hspi, cmd, 2);
+}
+
 /**
  * @brief  Initializes the MCP356x chip according to user config
  * @note   must be edited by the user
@@ -44,56 +53,49 @@ uint8_t _MCP3561_sread(SPI_HandleTypeDef *hspi, uint8_t *cmd){
 void MCP3561_Init(SPI_HandleTypeDef *hspi){
 	uint8_t cmd[4] = {0,0,0,0};
 
-	// be careful with the bitwise or operator "|"
+	// 8-bit CONFIG registers
 	cmd[0]  = MCP3561_CONFIG0_WRITE;
-	cmd[1]  = MCP3561_CONFIG0_CLK_SEL_EXT;   // clock selection
-	cmd[1] |= MCP3561_CONFIG0_ADC_MODE_CONV; // standby or converting
-	cmd[1] |= MCP3561_CONFIG0_CS_SEL_NONE;   // input current
+	cmd[1]  = MCP3561_USERCONF_REG0;
 	_MCP3561_write(hspi, cmd, 2);
 
 	cmd[0]  = MCP3561_CONFIG1_WRITE;
-	cmd[1]  = MCP3561_CONFIG1_OSR_4096;       // over sampling rate
-	cmd[1] |= MCP3561_CONFIG1_AMCLK_DIV8;    // sampling clock prescaler
+	cmd[1]  = MCP3561_USERCONF_REG1;
 	_MCP3561_write(hspi, cmd, 2);
 
 	cmd[0]  = MCP3561_CONFIG2_WRITE;
-	cmd[1]  = MCP3561_CONFIG2_BOOST_x1;   // Boost
-	cmd[1] |= MCP3561_CONFIG2_GAIN_x1;    // Gain
-	cmd[1] |= MCP3561_CONFIG2_AZ_MUX_OFF; // offset cancellation algorithm
+	cmd[1]  = MCP3561_USERCONF_REG2;
 	cmd[1] += 3; // last two bits must always be '11'
 	_MCP3561_write(hspi, cmd, 2);
 
 	cmd[0]  = MCP3561_CONFIG3_WRITE;
-	cmd[1]  = MCP3561_CONFIG3_CONV_MODE_CONTINUOUS; // conversion mode
-	cmd[1] |= MCP3561_CONFIG3_DATA_FORMAT_24BIT;    // SPI output data format, (32 and 24 bit available)
-	cmd[1] |= MCP3561_CONFIG3_CRCCOM_OFF;           // CRC
-	cmd[1] |= MCP3561_CONFIG3_GAINCAL_OFF;          // gain calibration
-	cmd[1] |= MCP3561_CONFIG3_OFFCAL_OFF;           // offset calibration
+	cmd[1]  = MCP3561_USERCONF_REG3;
 	_MCP3561_write(hspi, cmd, 2);
 
 	cmd[0]  = MCP3561_IRQ_WRITE;
-	cmd[1]  = MCP3561_IRQ_MODE_IRQ_HIGH;  // IRQ default pin state
-	cmd[1] |= MCP3561_IRQ_FASTCMD_ON;     // fast commands
-	cmd[1] |= MCP3561_IRQ_STP_ON;         // start of conversion IRQ
+	cmd[1]  = MCP3561_USERCONF_IRQ_REG;
 	_MCP3561_write(hspi, cmd, 2);
 
-	cmd[0]  = MCP3561_MUX_WRITE;
-	cmd[1]  = (MCP3561_MUX_CH0 << 4) | MCP3561_MUX_CH1;   // [7..4] VIN+ / [3..0] VIN-
-	//cmd[1]  = (MCP3561_MUX_CH_IntTemp_P << 4) | MCP3561_MUX_CH_IntTemp_M;   // [7..4] VIN+ / [3..0] VIN-
-	_MCP3561_write(hspi, cmd, 2);
+	// 24-bit CONFIG registers
 
 	// configure SCAN mode to automatically cycle through channels
-	// only available for MCP3562 and MCP356^4, and only for certain input combinations
+	// only available for MCP3562 and MCP3564, and only for certain input combinations
 	// @see Datasheet Table 5-14 on p. 54
+	#ifdef MCP3561_USERCONF_SCAN_ENABLE
+		uint32_t reg_val;
+		reg_val = MCP3561_USERCONF_SCAN_REG;
+		cmd[0] = MCP3561_SCAN_WRITE;
+		cmd[1] = (uint8_t)((reg_val >> 16) & 0xff);
+		cmd[2] = (uint8_t)((reg_val >>  8) & 0xff);
+		cmd[3] = (uint8_t)((reg_val)       & 0xff);
+		_MCP3561_write(hspi, cmd, 4);
 
-	/*
-	cmd[0] = MCP3561_SCAN_WRITE;
-	cmd[1] = MCP3561_SCAN_DLY_NONE;
-	cmd[2] = (1<<0) | (1<<1) | (1<<2) | (1<<3);  // enable all differential channels in SCAN mode. bits: 8,9,10,11
-	cmd[3] = 0;
-	_MCP3561_write(hspi, cmd, 4);
-	*/
-
+		reg_val = MCP3561_USERCONF_TIMER_VAL;
+		cmd[0] = MCP3561_TIMER_WRITE;
+		cmd[1] = (uint8_t)((reg_val >> 16) & 0xff);
+		cmd[2] = (uint8_t)((reg_val >>  8) & 0xff);
+		cmd[3] = (uint8_t)((reg_val)       & 0xff);
+		_MCP3561_write(hspi, cmd, 4);
+	#endif
 
 }
 
