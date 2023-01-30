@@ -413,6 +413,61 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     	}
     }
 }
+
+/*@brief this fuction does One-Shot for MCP3564 */
+void ADC_One_Shot(SPI_HandleTypeDef *hspi)
+{
+ int status;
+ int notReady;
+
+ // Pull chip select low
+ HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 0);
+
+ // Write command byte and get status in return
+ uint8_t cmd;
+ cmd = readConversionData;
+ HAL_SPI_TransmitReceive(hspi, &cmd,0, 1, 10);
+
+ // Check the status byte for the POR bit. Low = POR has occurred
+ if ((status & 0x01) == 0x00)
+ {
+	 //Use your own debug mode
+	 //Lcd_cursor(&lcd,0,9);
+	 //Lcd_string (&lcd,"ADC POR");
+     MCP3561_Init_ch0(&hspi1);
+  return;
+ }
+
+ // Check the data ready bit
+ if ((status & 0x04) == 0x04)
+ {
+  notReady++;
+  if (notReady > 20)
+  {
+	  //Use your own debug mode
+	  //Lcd_cursor(&lcd,0,9);
+	  //Lcd_string (&lcd,"ADC not ready");
+  }
+  else
+  {
+	  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
+   return;
+  }
+ }
+ notReady = 0;
+
+
+ // Set chip select high again
+ HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
+
+ // Start the next encode
+ cmd = startConversionFastCmd;
+ HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 0);
+ HAL_SPI_TransmitReceive(hspi, &cmd, 0, 1, 10);
+ HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
+
+}
+
 /* USER CODE END 4 */
 
 /**
