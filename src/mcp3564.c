@@ -18,9 +18,9 @@
 ************************************************************************************
 */
 
-#include "main.h"
 #include "mcp3564.h"
 #include "mcp3564_conf.h"
+#include "main.h"
 
 void _MCP3561_write(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t size){
 	// manually operate the !CS signal, because the STM32 hardware NSS signal is (sadly) useless
@@ -163,21 +163,67 @@ void MCP3561_Reset(SPI_HandleTypeDef *hspi){
 
 /**
  * @brief read 24 Bit left justified ADC register
- * @todo  how to read from other data formats?
+ * @todo  obsolete?
  */
 uint32_t MCP3561_ReadADCData(SPI_HandleTypeDef *hspi){
 	uint8_t val[5] = {0,0,0,0,0};
 	uint8_t cmd[5] = {0,0,0,0,0};
 	cmd[0] = MCP3561_SREAD_DATA_COMMAND;
-	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 0);
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 0);
 	HAL_SPI_TransmitReceive(hspi, cmd, val, 5, 10);
-	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 1);
 	uint32_t value = (val[1] << 16) | (val[2] << 8) | val[3];
 	return value;
 }
 
 /*
- * @bug this does not work because it will skip the transaction and write to the chip select pin
+ * @brief read 24 Bit ADC register DATA FORMAT 00 and 01 for MUX Mode.
+ */
+int32_t MCP3561_ReadADCData_24Bit(SPI_HandleTypeDef *hspi){
+	uint8_t val[5] = {0,0,0,0,0};
+	uint8_t cmd[5] = {0,0,0,0,0};
+	cmd[0] = MCP3561_SREAD_DATA_COMMAND;
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 0);
+	HAL_SPI_TransmitReceive(hspi, cmd, val, 5, 10);
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 1);
+	int32_t value = (((val[1] & 0x80) >> 7 ) << 31) | ( (val[1] & 0x7F) << 16) | (val[2] << 8) | val[3];
+	return value;
+}
+
+/*
+ * @brief read 32 Bit ADC register DATA FORMAT 10 and 11 for MUX Mode.
+ */
+int32_t MCP3561_ReadADCData_32Bit(SPI_HandleTypeDef *hspi){
+	uint8_t val[5] = {0,0,0,0,0};
+	uint8_t cmd[5] = {0,0,0,0,0};
+	cmd[0] = MCP3561_SREAD_DATA_COMMAND;
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 0);
+	HAL_SPI_TransmitReceive(hspi, cmd, val, 5, 10);
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 1);
+	int32_t value = ((val[1] & 0x01) << 31) | (val[2] << 16) | (val[3] << 8) | val[4];
+	return value;
+}
+
+/*
+ * @brief read 32 Bit ADC register DATA FORMAT 11 for Scan Mode.
+ */
+int32_t * MCP3561_ReadADCData_32Bit_Scan(SPI_HandleTypeDef *hspi){
+	uint8_t val[5] = {0,0,0,0,0};
+	uint8_t cmd[5] = {0,0,0,0,0};
+	cmd[0] = MCP3561_SREAD_DATA_COMMAND;
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 0);
+	HAL_SPI_TransmitReceive(hspi, cmd, val, 5, MCP3561_HAL_TIMEOUT);
+	HAL_GPIO_WritePin(MCP3561_CHIP_SELECT_GPIO_Port, MCP3561_CHIP_SELECT_GPIO_Pin, 1);
+	int32_t value[3] = { val[0] ,
+			( (val[1] & 0xF0) >> 4 ) ,
+			( (val[1] & 0x01) << 31) | (val[2] << 16) | (val[3] << 8) | val[4]};
+	int32_t * ptr = &value[0];
+	return ptr;
+}
+
+/*
+ * @bug this does not work because it will skip the transaction and write to the chip select pin.
+ * @todo deprecate?
  */
 uint32_t MCP3561_ReadADCData_IT(SPI_HandleTypeDef *hspi){
 	uint8_t val[5] = {0,0,0,0,0};
