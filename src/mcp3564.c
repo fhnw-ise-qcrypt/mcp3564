@@ -157,7 +157,7 @@ void MCP3561_PrintRegisters(SPI_HandleTypeDef *hspi){
 void MCP3561_Reset(SPI_HandleTypeDef *hspi){
 	uint8_t cmd;
 	cmd = DEVICE_RESET_COMMAND;
-	_MCP3561_write(hspi, cmd, 1);
+	_MCP3561_write(hspi, &cmd, 1);
 }
 
 
