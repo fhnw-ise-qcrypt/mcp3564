@@ -35,6 +35,10 @@
  /* Exported functions prototypes ---------------------------------------------*/
  void MCP3561_Init (SPI_HandleTypeDef *hspi);
  void MCP3561_Reset (SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Start_Restart(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Standby(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Shutdown(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Full_Shutdown(SPI_HandleTypeDef *hspi);
  void MCP3561_Channels(SPI_HandleTypeDef *hspi, uint8_t ch_p, uint8_t ch_n);
  uint32_t MCP3561_ReadADCData    (SPI_HandleTypeDef *hspi);
  int32_t MCP3561_ReadADCData_24Bit (SPI_HandleTypeDef *hspi);
