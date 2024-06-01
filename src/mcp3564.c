@@ -52,6 +52,14 @@ void MCP3561_Channels(SPI_HandleTypeDef *hspi, uint8_t ch_p, uint8_t ch_n){
  */
 void MCP3561_Init(SPI_HandleTypeDef *hspi){
 	uint8_t cmd[4] = {0,0,0,0};
+	
+	// Following the MCP3561 Errata Sheet recommendation (section 3) when internal oscillator is selected
+	uint32_t reg_val = 0x900F00;
+	cmd[0]  = MCP3561_RSVD_WRITE;
+	cmd[1] = (uint8_t)((reg_val >> 16) & 0xff);
+	cmd[2] = (uint8_t)((reg_val >>  8) & 0xff);
+	cmd[3] = (uint8_t)((reg_val)       & 0xff);
+	status = _MCP3561_write(hspi, cmd, 4);
 
 	// 8-bit CONFIG registers
 	cmd[0]  = MCP3561_CONFIG0_WRITE;
@@ -81,7 +89,6 @@ void MCP3561_Init(SPI_HandleTypeDef *hspi){
 	// only available for MCP3562 and MCP3564, and only for certain input combinations
 	// @see Datasheet Table 5-14 on p. 54
 	#ifdef MCP3561_USERCONF_SCAN_ENABLE
-		uint32_t reg_val;
 		reg_val = MCP3561_USERCONF_SCAN_REG;
 		cmd[0] = MCP3561_SCAN_WRITE;
 		cmd[1] = (uint8_t)((reg_val >> 16) & 0xff);
