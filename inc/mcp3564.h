@@ -35,6 +35,10 @@
  /* Exported functions prototypes ---------------------------------------------*/
  void MCP3561_Init (SPI_HandleTypeDef *hspi);
  void MCP3561_Reset (SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Start_Restart(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Standby(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Shutdown(SPI_HandleTypeDef *hspi);
+ void MCP3561_ADC_Full_Shutdown(SPI_HandleTypeDef *hspi);
  void MCP3561_Channels(SPI_HandleTypeDef *hspi, uint8_t ch_p, uint8_t ch_n);
  uint32_t MCP3561_ReadADCData    (SPI_HandleTypeDef *hspi);
  int32_t MCP3561_ReadADCData_24Bit (SPI_HandleTypeDef *hspi);
@@ -261,6 +265,14 @@
 // Resets the device registers to their default  values
 // MCP3561_DEVICE_ADDRESS_BYTE | 0b111000
 #define DEVICE_RESET_COMMAND (0xE << _MCP3561_COMMAND_ADDR_POS)
+// Start/Restart an ADC conversion
+#define DEVICE_ADC_START_RESTART_COMMAND    (0xA << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
+// Sets the ADC in Standby mode
+#define DEVICE_ADC_STANDBY_COMMAND          (0xB << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
+// Sets the ADC in Shutdown mode
+#define DEVICE_ADC_SHUTDOWN_COMMAND         (0xC << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
+// Sets the ADC in Full Shutdown mode
+#define DEVICE_ADC_FULL_SHUTDOWN_COMMAND    (0xD << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
 
 
 

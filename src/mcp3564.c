@@ -160,6 +160,46 @@ void MCP3561_Reset(SPI_HandleTypeDef *hspi){
 	_MCP3561_write(hspi, &cmd, 1);
 }
 
+/**
+ * @brief start/restart ADC converstion
+ */
+void MCP3561_ADC_Start_Restart(SPI_HandleTypeDef *hspi)
+{
+	uint8_t cmd;
+	cmd = DEVICE_ADC_START_RESTART_COMMAND;
+	_MCP3561_write(hspi, &cmd, 1);
+}
+
+/**
+ * @brief standby ADC converstion
+ */
+void MCP3561_ADC_Standby(SPI_HandleTypeDef *hspi)
+{
+	uint8_t cmd;
+	cmd = DEVICE_ADC_STANDBY_COMMAND;
+	_MCP3561_write(hspi, &cmd, 1);
+}
+
+/**
+ * @brief shutdown ADC converstion
+ */
+void MCP3561_ADC_Shutdown(SPI_HandleTypeDef *hspi)
+{
+	uint8_t cmd;
+	cmd = DEVICE_ADC_SHUTDOWN_COMMAND;
+	_MCP3561_write(hspi, &cmd, 1);
+}
+
+/**
+ * @brief full MCP3561 shutdown
+ */
+void MCP3561_ADC_Full_Shutdown(SPI_HandleTypeDef *hspi)
+{
+	uint8_t cmd;
+	cmd = DEVICE_ADC_FULL_SHUTDOWN_COMMAND;
+	_MCP3561_write(hspi, &cmd, 1);
+}
+
 
 /**
  * @brief read 24 Bit left justified ADC register
