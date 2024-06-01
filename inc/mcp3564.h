@@ -267,9 +267,11 @@
 #define MCP3561_CRCCFG_IREAD    (MCP3561_CRCCFG_ADDR << _MCP3561_COMMAND_ADDR_POS) | MCP3561_IREAD_COMMAND
 
 // USEFUL FAST COMMANDS AND OTHER COMMANDS
+//Device address[7:6], Fast Command[5:2], Command type[1:0]
 // Resets the device registers to their default  values
+
 // MCP3561_DEVICE_ADDRESS_BYTE | 0b111000
-#define DEVICE_RESET_COMMAND (0xE << _MCP3561_COMMAND_ADDR_POS)
+#define DEVICE_RESET_COMMAND                (0xE << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
 // Start/Restart an ADC conversion
 #define DEVICE_ADC_START_RESTART_COMMAND    (0xA << _MCP3561_COMMAND_ADDR_POS) | MCP3561_FAST_COMMAND
 // Sets the ADC in Standby mode
