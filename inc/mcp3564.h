@@ -267,6 +267,7 @@
 #define MCP3561_CRCCFG_IREAD    (MCP3561_CRCCFG_ADDR << _MCP3561_COMMAND_ADDR_POS) | MCP3561_IREAD_COMMAND
 
 // USEFUL FAST COMMANDS AND OTHER COMMANDS
+#define MCP3561_FAST_COMMAND 0b00
 //Device address[7:6], Fast Command[5:2], Command type[1:0]
 // Resets the device registers to their default  values
 
